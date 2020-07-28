@@ -4,8 +4,8 @@ import com.github.saiprasadkrishnamurthy.tracer.api.TraceContext;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.context.ApplicationContext;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
@@ -19,4 +19,5 @@ public class RawEvent {
     private long timestamp;
     private List<String> tags;
     private String threadId;
+    private ApplicationContext applicationContext;
 }

@@ -71,7 +71,7 @@ public class DefaultState implements State {
         MDC.setContextMap(ctx);
         MDC.put(TRACE_ID_KEY, traceContext.getTraceId());
         MDC.put(TRACE_TAGS_KEY, traceContext.getTraceTags());
-        String tags = traceIdAndTags.get(traceContext.getTraceId()).stream().filter(Objects::nonNull).findFirst().orElse(null);
+        String tags = new ArrayList<>(traceIdAndTags.get(traceContext.getTraceId())).stream().filter(Objects::nonNull).findFirst().orElse(null);
         traceContext.setTraceTags(tags);
         return traceContext;
     }
