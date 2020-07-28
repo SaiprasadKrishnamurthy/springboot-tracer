@@ -1,6 +1,7 @@
 package com.github.saiprasadkrishnamurthy.tracer._inst.config;
 
 import com.github.saiprasadkrishnamurthy.tracer.api.State;
+import com.github.saiprasadkrishnamurthy.tracer.api.TraceContext;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
 
@@ -13,11 +14,11 @@ public class ParallelStreamConfig {
         this.state = state;
     }
 
-    public String currentTraceId() {
-        return state.getTraceId();
+    public TraceContext currentTraceContext() {
+        return state.getTraceContext();
     }
 
-    public void propagate(final String traceId) {
-        state.propagate(traceId);
+    public void propagate(final TraceContext traceContext) {
+        state.propagate(traceContext);
     }
 }

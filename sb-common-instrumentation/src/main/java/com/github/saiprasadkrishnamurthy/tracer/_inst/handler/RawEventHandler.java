@@ -20,7 +20,7 @@ public class RawEventHandler {
     public void expensiveOperation(final RawEvent rawEvent) {
         Method method = rawEvent.getMethodInvocation().getMethod();
         Class<?> declaringClass = rawEvent.getMethodInvocation().getMethod().getDeclaringClass();
-        TraceEvent traceEvent = new TraceEvent(rawEvent.getTraceId(),
+        TraceEvent traceEvent = new TraceEvent(rawEvent.getTraceContext(),
                 rawEvent.getAppName(),
                 declaringClass.getName(),
                 method.getName(),

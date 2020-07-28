@@ -1,5 +1,6 @@
 package com.github.saiprasadkrishnamurthy.tracer._inst.model;
 
+import com.github.saiprasadkrishnamurthy.tracer.api.TraceContext;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.aopalliance.intercept.MethodInvocation;
@@ -10,7 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @Data
 public class RawEvent {
-    private String traceId;
+    private TraceContext traceContext;
     private String appName;
     private MethodInvocation methodInvocation;
     private TraceEventType traceEventType;

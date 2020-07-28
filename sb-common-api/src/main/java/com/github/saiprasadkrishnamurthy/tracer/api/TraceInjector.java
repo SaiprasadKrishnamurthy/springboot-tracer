@@ -7,10 +7,12 @@ import java.util.function.Supplier;
 
 public interface TraceInjector {
     String TRACE_ID_KEY = "X-trace-id";
+    String TRACE_TAGS_KEY = "X-tags-id";
+
     Function<ApplicationContext, Void> traceIdInjector();
 
-    default Supplier<String> traceIdSupplier(final ApplicationContext applicationContext) {
-        return () -> applicationContext.getBean("defaultState", State.class).getTraceId();
+    default Supplier<TraceContext> traceContextSupplier(final ApplicationContext applicationContext) {
+        return () -> applicationContext.getBean("defaultState", State.class).getTraceContext();
     }
 
     default void inject(final ApplicationContext applicationContext) {

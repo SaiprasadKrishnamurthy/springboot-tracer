@@ -35,12 +35,12 @@ public class ApplicationCodeAspect {
                 "!execution(* *.._inst..*.*(..))");
         return new DefaultPointcutAdvisor(pointcut, (MethodInterceptor) methodInvocation -> {
             Object result;
-            mBassador.publish(new RawEvent(state.getTraceId(), appName, methodInvocation, TraceEventType.Entry, null, System.currentTimeMillis(), null, Thread.currentThread().getName()));
+            mBassador.publish(new RawEvent(state.getTraceContext(), appName, methodInvocation, TraceEventType.Entry, null, System.currentTimeMillis(), null, Thread.currentThread().getName()));
             try {
                 result = methodInvocation.proceed();
-                mBassador.publish(new RawEvent(state.getTraceId(), appName, methodInvocation, TraceEventType.Exit, null, System.currentTimeMillis(), null, Thread.currentThread().getName()));
+                mBassador.publish(new RawEvent(state.getTraceContext(), appName, methodInvocation, TraceEventType.Exit, null, System.currentTimeMillis(), null, Thread.currentThread().getName()));
             } catch (Throwable err) {
-                mBassador.publish(new RawEvent(state.getTraceId(), appName, methodInvocation, TraceEventType.Error, err, System.currentTimeMillis(), null, Thread.currentThread().getName()));
+                mBassador.publish(new RawEvent(state.getTraceContext(), appName, methodInvocation, TraceEventType.Error, err, System.currentTimeMillis(), null, Thread.currentThread().getName()));
                 throw err;
             }
             return result;

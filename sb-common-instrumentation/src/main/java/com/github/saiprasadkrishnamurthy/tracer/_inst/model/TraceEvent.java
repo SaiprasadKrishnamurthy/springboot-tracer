@@ -1,5 +1,6 @@
 package com.github.saiprasadkrishnamurthy.tracer._inst.model;
 
+import com.github.saiprasadkrishnamurthy.tracer.api.TraceContext;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +14,7 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TraceEvent {
-    private String traceId;
+    private TraceContext traceContext;
     private String appName;
     private String className;
     private String methodName;

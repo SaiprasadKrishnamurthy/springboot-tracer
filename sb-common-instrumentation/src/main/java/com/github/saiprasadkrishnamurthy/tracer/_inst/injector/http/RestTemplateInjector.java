@@ -32,7 +32,8 @@ public class RestTemplateInjector implements TraceInjector, ApplicationListener<
             Map<String, RestTemplate> restTemplateMap = applicationContext.getBeansOfType(RestTemplate.class);
             if (restTemplateMap != null && restTemplateMap.size() > 0) {
                 restTemplateMap.values().forEach(rt -> rt.getInterceptors().add((httpRequest, bytes, execution) -> {
-                    httpRequest.getHeaders().add(TRACE_ID_KEY, traceIdSupplier(applicationContext).get());
+                    httpRequest.getHeaders().add(TRACE_ID_KEY, traceContextSupplier(applicationContext).get().getTraceId());
+                    httpRequest.getHeaders().add(TRACE_TAGS_KEY, traceContextSupplier(applicationContext).get().getTraceTags());
                     return execution.execute(httpRequest, bytes);
                 }));
             }

@@ -1,5 +1,6 @@
 package com.github.saiprasadkrishnamurthy.tracer._inst.provider.http;
 
+import com.github.saiprasadkrishnamurthy.tracer.api.TraceContext;
 import com.github.saiprasadkrishnamurthy.tracer.api.TraceProvider;
 import lombok.Data;
 import org.springframework.stereotype.Component;
@@ -12,11 +13,13 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 public class HttpTraceProvider implements TraceProvider {
 
     @Override
-    public String getTraceId() {
+    public TraceContext getTraceContext() {
         RequestAttributes attribs = RequestContextHolder.getRequestAttributes();
         ServletRequestAttributes attrs = ((ServletRequestAttributes) attribs);
         if (attrs != null) {
-            return attrs.getRequest().getHeader(TRACE_ID_KEY);
+            String id = attrs.getRequest().getHeader(TRACE_ID_KEY);
+            String tags = attrs.getRequest().getHeader(TRACE_TAGS_KEY);
+            return new TraceContext(id, tags);
         }
         return null;
     }
