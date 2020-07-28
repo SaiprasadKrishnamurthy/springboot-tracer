@@ -1,6 +1,9 @@
 package com.github.saiprasadkrishnamurthy.tracer._inst.aspect;
 
+import com.github.saiprasadkrishnamurthy.tracer._inst.model.RawEvent;
+import com.github.saiprasadkrishnamurthy.tracer._inst.model.TraceEventType;
 import com.github.saiprasadkrishnamurthy.tracer.api.State;
+import net.engio.mbassy.bus.MBassador;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.springframework.aop.Advisor;
 import org.springframework.aop.aspectj.AspectJExpressionPointcut;
@@ -16,9 +19,11 @@ import java.lang.reflect.Method;
 public class ApplicationCodeAspect {
 
     private final State state;
+    private final MBassador mBassador;
 
-    public ApplicationCodeAspect(@Qualifier("defaultState") final State state) {
+    public ApplicationCodeAspect(@Qualifier("defaultState") final State state, final MBassador mBassador) {
         this.state = state;
+        this.mBassador = mBassador;
     }
 
     @Bean
@@ -29,11 +34,9 @@ public class ApplicationCodeAspect {
                 "!execution(* org.springframework..*.*(..)) && " +
                 "!execution(* *.._inst..*.*(..))");
         return new DefaultPointcutAdvisor(pointcut, (MethodInterceptor) methodInvocation -> {
-            Method method = methodInvocation.getMethod();
-            Class<?> declaringClass = methodInvocation.getMethod().getDeclaringClass();
-            System.out.println("[" + state.getTraceId() + "] ******** Beforeee *************** " + declaringClass.getSimpleName() + "::" + method.getName());
+            mBassador.publish(new RawEvent(state.getTraceId(), methodInvocation, TraceEventType.Entry, null));
             Object result = methodInvocation.proceed();
-            System.out.println("[" + state.getTraceId() + "] ******** Afterrr *************** " + declaringClass.getSimpleName() + "::" + method.getName());
+            mBassador.publish(new RawEvent(state.getTraceId(), methodInvocation, TraceEventType.Exit, null));
             return result;
         });
     }

@@ -44,6 +44,13 @@
             <artifactId>sb-common-api</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/net.engio/mbassador -->
+        <dependency>
+            <groupId>net.engio</groupId>
+            <artifactId>mbassador</artifactId>
+            <version>1.3.2</version>
+        </dependency>
+
     </dependencies>
     <build>
         <plugins>
