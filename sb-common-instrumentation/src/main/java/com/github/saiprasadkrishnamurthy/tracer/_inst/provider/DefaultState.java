@@ -10,9 +10,8 @@ import org.slf4j.MDC;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -23,15 +22,20 @@ public class DefaultState implements State {
     private static final String TRACE_TAGS_KEY = TraceProvider.TRACE_TAGS_KEY;
 
     private final ApplicationContext applicationContext;
+
+    private final Map<String, List<String>> traceIdAndTags = new ConcurrentHashMap<>();
+
     private final Map<TraceContext, String> store = ExpiringMap.builder()
-            .expiration(4, TimeUnit.SECONDS)
+            .expiration(5, TimeUnit.SECONDS)
             .expirationPolicy(ExpirationPolicy.ACCESSED)
             .expirationListener((k, v) -> {
                 MDC.remove(k.toString());
                 MDC.clear();
+                traceIdAndTags.remove(k.toString());
                 System.out.println(" Cleared " + k + " from Context ");
             })
             .build();
+
 
     public DefaultState(final ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
@@ -51,12 +55,24 @@ public class DefaultState implements State {
                     return tc;
                 }).orElse(new TraceContext(UUID.randomUUID().toString(), null));
         store.put(traceContext, "");
+        traceIdAndTags.compute(traceContext.getTraceId(), (k, v) -> {
+            if (v == null) {
+                List<String> x = new ArrayList<>();
+                x.add(traceContext.getTraceTags());
+                return x;
+            } else {
+                v.add(traceContext.getTraceTags());
+                return v;
+            }
+        });
         Map<String, String> ctx = new HashMap<>();
         ctx.put(TRACE_ID_KEY, traceContext.getTraceId());
         ctx.put(TRACE_TAGS_KEY, traceContext.getTraceTags());
         MDC.setContextMap(ctx);
         MDC.put(TRACE_ID_KEY, traceContext.getTraceId());
         MDC.put(TRACE_TAGS_KEY, traceContext.getTraceTags());
+        String tags = traceIdAndTags.get(traceContext.getTraceId()).stream().filter(Objects::nonNull).findFirst().orElse(null);
+        traceContext.setTraceTags(tags);
         return traceContext;
     }
 
