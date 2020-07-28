@@ -20,4 +20,5 @@ public class RawEvent {
     private List<String> tags;
     private String threadId;
     private ApplicationContext applicationContext;
+    private long timeTakenInMillis;
 }

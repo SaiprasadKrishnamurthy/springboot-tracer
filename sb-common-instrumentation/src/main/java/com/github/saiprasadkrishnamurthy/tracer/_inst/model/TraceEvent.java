@@ -24,4 +24,5 @@ public class TraceEvent {
     private Map<String, Object> params = new LinkedHashMap<>();
     private List<String> tags = new ArrayList<>();
     private String threadId;
+    private long timeTakenInMillis;
 }

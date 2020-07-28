@@ -38,13 +38,15 @@ public class ApplicationCodeAspect {
                 "!execution(* org.springframework..*.*(..)) && " +
                 "!execution(* *.._inst..*.*(..))");
         return new DefaultPointcutAdvisor(pointcut, (MethodInterceptor) methodInvocation -> {
+            long start = System.currentTimeMillis();
             Object result;
-            mBassador.publish(new RawEvent(state.getTraceContext(), appName, methodInvocation, TraceEventType.Entry, null, System.currentTimeMillis(), null, Thread.currentThread().getName(), applicationContext));
+            mBassador.publish(new RawEvent(state.getTraceContext(), appName, methodInvocation, TraceEventType.Entry, null, System.currentTimeMillis(), null, Thread.currentThread().getName(), applicationContext, -1));
             try {
                 result = methodInvocation.proceed();
-                mBassador.publish(new RawEvent(state.getTraceContext(), appName, methodInvocation, TraceEventType.Exit, null, System.currentTimeMillis(), null, Thread.currentThread().getName(), applicationContext));
+                long end = System.currentTimeMillis();
+                mBassador.publish(new RawEvent(state.getTraceContext(), appName, methodInvocation, TraceEventType.Exit, null, System.currentTimeMillis(), null, Thread.currentThread().getName(), applicationContext, end - start));
             } catch (Throwable err) {
-                mBassador.publish(new RawEvent(state.getTraceContext(), appName, methodInvocation, TraceEventType.Error, err, System.currentTimeMillis(), null, Thread.currentThread().getName(), applicationContext));
+                mBassador.publish(new RawEvent(state.getTraceContext(), appName, methodInvocation, TraceEventType.Error, err, System.currentTimeMillis(), null, Thread.currentThread().getName(), applicationContext, System.currentTimeMillis() - start));
                 throw err;
             }
             return result;

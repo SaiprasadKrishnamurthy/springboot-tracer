@@ -34,7 +34,8 @@ public class RawEventHandler {
                     getHostName(),
                     parseParams(method),
                     rawEvent.getTags(),
-                    rawEvent.getThreadId());
+                    rawEvent.getThreadId(),
+                    rawEvent.getTimeTakenInMillis());
             // TODO Check if this doesn't leak? Shouldn't we close?
             Connection natsConn = rawEvent.getApplicationContext().getBean(Connection.class);
             String environmentPrefix = rawEvent.getApplicationContext().getEnvironment().getProperty("tracing.environment.prefix", "");
