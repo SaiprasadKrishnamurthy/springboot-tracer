@@ -2,7 +2,9 @@ package com.github.saiprasadkrishnamurthy.tracer._inst.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.saiprasadkrishnamurthy.tracer._inst.model.RawEvent;
+import com.github.saiprasadkrishnamurthy.tracer._inst.model.RawEventWhole;
 import com.github.saiprasadkrishnamurthy.tracer._inst.model.TraceEvent;
+import com.github.saiprasadkrishnamurthy.tracer._inst.model.TraceEventWhole;
 import io.nats.client.Connection;
 import lombok.extern.slf4j.Slf4j;
 import net.engio.mbassy.listener.Handler;
@@ -40,6 +42,32 @@ public class RawEventHandler {
             Connection natsConn = rawEvent.getApplicationContext().getBean(Connection.class);
             String environmentPrefix = rawEvent.getApplicationContext().getEnvironment().getProperty("tracing.environment.prefix", "");
             String tracingQueue = rawEvent.getApplicationContext().getEnvironment().getProperty("tracing.queue", "tracing_queue");
+            natsConn.publish(environmentPrefix + "_" + tracingQueue, new ObjectMapper().writeValueAsBytes(traceEvent));
+        } catch (Exception ex) {
+            log.error("Can't publish trace event for traceId: " + rawEvent.getTraceContext().getTraceId(), ex);
+        }
+    }
+
+    @Handler(delivery = Invoke.Asynchronously)
+    public void handleEventWhole(final RawEventWhole rawEvent) {
+        try {
+            Method method = rawEvent.getMethodInvocation().getMethod();
+            Class<?> declaringClass = rawEvent.getMethodInvocation().getMethod().getDeclaringClass();
+            TraceEventWhole traceEvent = new TraceEventWhole(rawEvent.getTraceContext(),
+                    rawEvent.getAppName(),
+                    declaringClass.getName(),
+                    method.getName(),
+                    rawEvent.getStart(),
+                    rawEvent.getEnd(),
+                    getHostName(),
+                    parseParams(method),
+                    rawEvent.getTags(),
+                    rawEvent.getThreadId(),
+                    rawEvent.getTimeTakenInMillis());
+            // TODO Check if this doesn't leak? Shouldn't we close?
+            Connection natsConn = rawEvent.getApplicationContext().getBean(Connection.class);
+            String environmentPrefix = rawEvent.getApplicationContext().getEnvironment().getProperty("tracing.environment.prefix", "");
+            String tracingQueue = rawEvent.getApplicationContext().getEnvironment().getProperty("tracing.queue.whole", "tracing_queue_whole");
             natsConn.publish(environmentPrefix + "_" + tracingQueue, new ObjectMapper().writeValueAsBytes(traceEvent));
         } catch (Exception ex) {
             log.error("Can't publish trace event for traceId: " + rawEvent.getTraceContext().getTraceId(), ex);
