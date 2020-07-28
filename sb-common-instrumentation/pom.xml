@@ -7,6 +7,7 @@
     <version>1.0.0-SNAPSHOT</version>
     <name>sb-common-instrumentation</name>
     <description>Springboot Tracer Common Instrumentation</description>
+    <url>https://github.com/SaiprasadKrishnamurthy/springboot-tracer</url>
     <properties>
         <java.version>11</java.version>
         <maven.compiler.target>11</maven.compiler.target>
