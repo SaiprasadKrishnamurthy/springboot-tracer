@@ -51,7 +51,6 @@
             <artifactId>mbassador</artifactId>
             <version>1.3.2</version>
         </dependency>
-
     </dependencies>
     <build>
         <plugins>
