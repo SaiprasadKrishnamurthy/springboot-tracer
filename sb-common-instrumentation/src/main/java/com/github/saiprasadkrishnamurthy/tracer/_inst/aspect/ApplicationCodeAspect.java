@@ -13,17 +13,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Method;
-
 @Component
 public class ApplicationCodeAspect {
 
     private final State state;
     private final MBassador mBassador;
+    private String appName;
 
-    public ApplicationCodeAspect(@Qualifier("defaultState") final State state, final MBassador mBassador) {
+    public ApplicationCodeAspect(@Qualifier("defaultState") final State state, final MBassador mBassador, @Value("${spring.application.name}") final String appName) {
         this.state = state;
         this.mBassador = mBassador;
+        this.appName = appName;
     }
 
     @Bean
@@ -34,9 +34,15 @@ public class ApplicationCodeAspect {
                 "!execution(* org.springframework..*.*(..)) && " +
                 "!execution(* *.._inst..*.*(..))");
         return new DefaultPointcutAdvisor(pointcut, (MethodInterceptor) methodInvocation -> {
-            mBassador.publish(new RawEvent(state.getTraceId(), methodInvocation, TraceEventType.Entry, null));
-            Object result = methodInvocation.proceed();
-            mBassador.publish(new RawEvent(state.getTraceId(), methodInvocation, TraceEventType.Exit, null));
+            Object result;
+            mBassador.publish(new RawEvent(state.getTraceId(), appName, methodInvocation, TraceEventType.Entry, null, System.currentTimeMillis(), null, Thread.currentThread().getName()));
+            try {
+                result = methodInvocation.proceed();
+                mBassador.publish(new RawEvent(state.getTraceId(), appName, methodInvocation, TraceEventType.Exit, null, System.currentTimeMillis(), null, Thread.currentThread().getName()));
+            } catch (Throwable err) {
+                mBassador.publish(new RawEvent(state.getTraceId(), appName, methodInvocation, TraceEventType.Error, err, System.currentTimeMillis(), null, Thread.currentThread().getName()));
+                throw err;
+            }
             return result;
         });
     }
