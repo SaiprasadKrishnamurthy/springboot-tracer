@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.saiprasadkrishnamurthy.tracer</groupId>
-    <artifactId>sb-common-instrumentation</artifactId>
+    <artifactId>sb-kafka-instrumentation</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <name>sb-common-instrumentation</name>
-    <description>Springboot Tracer Common Instrumentation</description>
+    <name>sb-kafka-instrumentation</name>
+    <description>Springboot Tracer Kafka Instrumentation</description>
     <url>https://github.com/SaiprasadKrishnamurthy/springboot-tracer</url>
     <properties>
         <java.version>11</java.version>
@@ -28,6 +28,19 @@
             <version>2.3.1.RELEASE</version>
             <scope>provided</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.springframework.kafka/spring-kafka -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+            <version>2.5.4.RELEASE</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.springframework.kafka/spring-kafka-test -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka-test</artifactId>
+            <version>2.5.4.RELEASE</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
@@ -42,7 +55,7 @@
         </dependency>
         <dependency>
             <groupId>com.github.saiprasadkrishnamurthy.tracer</groupId>
-            <artifactId>sb-common-api</artifactId>
+            <artifactId>sb-common-instrumentation</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/net.engio/mbassador -->

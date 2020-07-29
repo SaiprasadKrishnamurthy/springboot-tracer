@@ -15,7 +15,9 @@
     <modules>
         <module>sb-common-api</module>
         <module>sb-common-instrumentation</module>
+        <module>sb-kafka-instrumentation</module>
     </modules>
+
 
     <build>
         <plugins>
