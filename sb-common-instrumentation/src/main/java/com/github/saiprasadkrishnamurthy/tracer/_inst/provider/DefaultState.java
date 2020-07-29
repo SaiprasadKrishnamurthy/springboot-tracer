@@ -32,7 +32,7 @@ public class DefaultState implements State {
                 MDC.remove(k.toString());
                 MDC.clear();
                 traceIdAndTags.remove(k.toString());
-                System.out.println(" Cleared " + k + " from Context ");
+                log.info(" Cleared {}   from Context ", k);
             })
             .build();
 
