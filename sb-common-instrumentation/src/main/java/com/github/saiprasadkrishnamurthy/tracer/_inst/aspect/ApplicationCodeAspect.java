@@ -13,8 +13,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.stereotype.Component;
 
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 @Component
 public class ApplicationCodeAspect {
 
@@ -37,7 +39,8 @@ public class ApplicationCodeAspect {
         pointcut.setExpression("execution(* " + instrumentationBasePkg + "..*.*(..)) && " +
                 "!@annotation(org.springframework.context.annotation.Bean) && !@annotation(org.springframework.context.annotation.Configuration) && " +
                 "!execution(* org.springframework..*.*(..)) && " +
-                "!execution(* *.._inst..*.*(..))");
+                "!execution(* *.._inst..*.*(..)) || " +
+                "target(org.springframework.data.mongodb.repository.MongoRepository) && execution(* org.springframework.data.repository.CrudRepository.*(..))");
         return new DefaultPointcutAdvisor(pointcut, (MethodInterceptor) methodInvocation -> {
             long start = System.currentTimeMillis();
             Object result;
