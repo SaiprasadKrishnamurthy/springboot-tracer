@@ -27,7 +27,7 @@ public class ConsumerTracer<K, V> implements ConsumerInterceptor<K, V>, TraceCon
                 if (header.key().equals(TRACE_ID_KEY)) {
                     traceId.set(new String(header.value()));
                 }
-                if (header.key().equals(TRACE_TAGS_KEY)) {
+                if (header.key().equals(TRACE_TAGS_KEY) && header.value() != null) {
                     traceTags.set(new String(header.value()));
                 }
             });

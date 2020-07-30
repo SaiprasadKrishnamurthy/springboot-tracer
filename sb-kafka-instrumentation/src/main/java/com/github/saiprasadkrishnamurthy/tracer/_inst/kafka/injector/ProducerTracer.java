@@ -1,5 +1,6 @@
 package com.github.saiprasadkrishnamurthy.tracer._inst.kafka.injector;
 
+import com.github.saiprasadkrishnamurthy.tracer.api.TraceContext;
 import com.github.saiprasadkrishnamurthy.tracer.api.TraceContextSupplier;
 import org.apache.kafka.clients.producer.ProducerInterceptor;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -14,9 +15,11 @@ public class ProducerTracer<K, V> implements ProducerInterceptor<K, V>, TraceCon
 
     @Override
     public ProducerRecord<K, V> onSend(ProducerRecord<K, V> producerRecord) {
+
+        TraceContext traceContext = traceContextSupplier(applicationContext).get();
         producerRecord.headers()
-                .add(TRACE_ID_KEY, traceContextSupplier(applicationContext).get().getTraceId().getBytes())
-                .add(TRACE_TAGS_KEY, traceContextSupplier(applicationContext).get().getTraceTags().getBytes());
+                .add(TRACE_ID_KEY, traceContext.getTraceId().getBytes())
+                .add(TRACE_TAGS_KEY, traceContext.getTraceTags() != null ? traceContext.getTraceTags().getBytes() : null);
 
         return producerRecord;
     }
