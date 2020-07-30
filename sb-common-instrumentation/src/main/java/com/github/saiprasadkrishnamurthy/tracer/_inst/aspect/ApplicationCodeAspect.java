@@ -16,6 +16,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 @Component
 public class ApplicationCodeAspect {
@@ -34,13 +38,18 @@ public class ApplicationCodeAspect {
     }
 
     @Bean
-    public Advisor advisorBean(@Value("${instrumentation.base.package}") final String instrumentationBasePkg) {
+    public Advisor advisorBean(@Value("${instrumentation.base.package}") final String instrumentationBasePkg,
+                               @Value("${instrumentation.components:standard}") final String components) {
         AspectJExpressionPointcut pointcut = new AspectJExpressionPointcut();
-        pointcut.setExpression("execution(* " + instrumentationBasePkg + "..*.*(..)) && " +
+        String expressions = "execution(* " + instrumentationBasePkg + "..*.*(..)) && " +
                 "!@annotation(org.springframework.context.annotation.Bean) && !@annotation(org.springframework.context.annotation.Configuration) && " +
                 "!execution(* org.springframework..*.*(..)) && " +
-                "!execution(* *.._inst..*.*(..)) || " +
-                "target(org.springframework.data.mongodb.repository.MongoRepository) && execution(* org.springframework.data.repository.CrudRepository.*(..))");
+                "!execution(* *.._inst..*.*(..))";
+        List<String> coms = Arrays.stream(components.split(",")).map(String::toLowerCase).collect(Collectors.toList());
+        if (coms.contains("mongo") || coms.contains("mongodb")) {
+            expressions += " || target(org.springframework.data.mongodb.repository.MongoRepository) && execution(* org.springframework.data.repository.CrudRepository.*(..))";
+        }
+        pointcut.setExpression(expressions);
         return new DefaultPointcutAdvisor(pointcut, (MethodInterceptor) methodInvocation -> {
             long start = System.currentTimeMillis();
             Object result;
@@ -56,6 +65,25 @@ public class ApplicationCodeAspect {
                 throw err;
             }
             return result;
+        });
+    }
+
+    @Bean
+    public Advisor advisorBean1(@Value("${instrumentation.base.package}") final String instrumentationBasePkg,
+                                @Value("${instrumentation.components:standard}") final String components) {
+        AspectJExpressionPointcut pointcut = new AspectJExpressionPointcut();
+        String expressions = "execution(*  " +
+                "!@annotation(org.springframework.context.annotation.Bean) && !@annotation(org.springframework.context.annotation.Configuration) && " +
+                "!execution(* org.springframework..*.*(..)) && " +
+                "!execution(* *.._inst..*.*(..))";
+        List<String> coms = Arrays.stream(components.split(",")).map(String::toLowerCase).collect(Collectors.toList());
+        if (coms.contains("mongo") || coms.contains("mongodb")) {
+            expressions += " || target(org.springframework.data.mongodb.repository.MongoRepository) && execution(* org.springframework.data.repository.CrudRepository.*(..))";
+        }
+        pointcut.setExpression(expressions);
+        return new DefaultPointcutAdvisor(pointcut, (MethodInterceptor) methodInvocation -> {
+            System.out.println("___________________****______________");
+            return methodInvocation.proceed();
         });
     }
 }
