@@ -13,7 +13,7 @@ import java.util.Map;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TraceEventWhole {
+public class MethodEvent {
     private TraceContext traceContext;
     private String appName;
     private String className;
@@ -22,6 +22,7 @@ public class TraceEventWhole {
     private long end;
     private String host;
     private Map<String, Object> params = new LinkedHashMap<>();
+    private Map<String, Object> metadata = new LinkedHashMap<>();
     private List<String> tags = new ArrayList<>();
     private String threadId;
     private long timeTakenInMillis;
