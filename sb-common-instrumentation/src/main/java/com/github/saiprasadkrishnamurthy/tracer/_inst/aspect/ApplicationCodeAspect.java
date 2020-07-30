@@ -67,23 +67,4 @@ public class ApplicationCodeAspect {
             return result;
         });
     }
-
-    @Bean
-    public Advisor advisorBean1(@Value("${instrumentation.base.package}") final String instrumentationBasePkg,
-                                @Value("${instrumentation.components:standard}") final String components) {
-        AspectJExpressionPointcut pointcut = new AspectJExpressionPointcut();
-        String expressions = "execution(*  " +
-                "!@annotation(org.springframework.context.annotation.Bean) && !@annotation(org.springframework.context.annotation.Configuration) && " +
-                "!execution(* org.springframework..*.*(..)) && " +
-                "!execution(* *.._inst..*.*(..))";
-        List<String> coms = Arrays.stream(components.split(",")).map(String::toLowerCase).collect(Collectors.toList());
-        if (coms.contains("mongo") || coms.contains("mongodb")) {
-            expressions += " || target(org.springframework.data.mongodb.repository.MongoRepository) && execution(* org.springframework.data.repository.CrudRepository.*(..))";
-        }
-        pointcut.setExpression(expressions);
-        return new DefaultPointcutAdvisor(pointcut, (MethodInterceptor) methodInvocation -> {
-            System.out.println("___________________****______________");
-            return methodInvocation.proceed();
-        });
-    }
 }
