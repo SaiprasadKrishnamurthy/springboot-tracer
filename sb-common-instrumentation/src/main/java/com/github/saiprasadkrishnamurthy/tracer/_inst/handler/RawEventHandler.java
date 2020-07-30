@@ -13,6 +13,7 @@ import net.engio.mbassy.listener.References;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.TypeVariable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
@@ -68,7 +69,7 @@ public class RawEventHandler {
                     rawEvent.getTimeTakenInMillis());
             NatsConnProvider natsConnProvider = rawEvent.getApplicationContext().getBean(NatsConnProvider.class);
             String environmentPrefix = rawEvent.getApplicationContext().getEnvironment().getProperty("tracing.environment.prefix", "");
-            String tracingQueue = rawEvent.getApplicationContext().getEnvironment().getProperty("tracing.queue.whole", "tracing_queue_whole");
+            String tracingQueue = rawEvent.getApplicationContext().getEnvironment().getProperty("tracing.queue.method", "tracing_queue_method");
             natsConnProvider.doWithConnection(conn -> conn.publish(environmentPrefix + "_" + tracingQueue, new ObjectMapper().writeValueAsBytes(traceEvent)));
         } catch (Exception ex) {
             log.error("Can't publish trace event for traceId: " + rawEvent.getTraceContext().getTraceId(), ex);
@@ -82,10 +83,26 @@ public class RawEventHandler {
                 .map(Class::getName)
                 .collect(toList());
         metadata.put("methodAnnotations", collect);
+
         Class<?>[] interfaces = method.getDeclaringClass().getInterfaces();
         if (interfaces != null) {
             collect = Arrays.stream(interfaces).map(Class::getSimpleName).collect(toList());
             metadata.put("implementingInterfaces", collect);
+            collect = Arrays.stream(interfaces)
+                    .map(Class::getTypeParameters)
+                    .filter(Objects::nonNull)
+                    .flatMap(Arrays::stream)
+                    .map(t -> t.getGenericDeclaration().getName())
+                    .collect(toList());
+            metadata.put("interfaceParameterTypes", collect);
+        }
+        TypeVariable<? extends Class<?>>[] typeParameters = method.getDeclaringClass().getTypeParameters();
+        if(typeParameters != null) {
+            collect = Arrays.stream(typeParameters)
+                    .filter(Objects::nonNull)
+                    .map(t -> t.getGenericDeclaration().getName())
+                    .collect(toList());
+            metadata.put("typeParameters", collect);
         }
         Class<?> superClass = method.getDeclaringClass().getSuperclass();
         if (superClass != null) {
