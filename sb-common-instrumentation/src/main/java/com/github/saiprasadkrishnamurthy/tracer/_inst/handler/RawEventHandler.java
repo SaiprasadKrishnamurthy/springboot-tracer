@@ -36,6 +36,7 @@ public class RawEventHandler {
                     rawEvent.getTraceEventType(),
                     getHostName(),
                     parseParams(method),
+                    parseMetadata(method),
                     rawEvent.getTags(),
                     rawEvent.getThreadId(),
                     rawEvent.getTimeTakenInMillis());
