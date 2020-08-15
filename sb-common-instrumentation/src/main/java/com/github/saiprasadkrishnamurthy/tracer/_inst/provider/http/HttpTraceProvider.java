@@ -8,6 +8,9 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.util.HashMap;
+import java.util.UUID;
+
 @Data
 @Component
 public class HttpTraceProvider implements TraceProvider {
@@ -19,7 +22,9 @@ public class HttpTraceProvider implements TraceProvider {
         if (attrs != null) {
             String id = attrs.getRequest().getHeader(TRACE_ID_KEY);
             String tags = attrs.getRequest().getHeader(TRACE_TAGS_KEY);
-            return new TraceContext(id, tags);
+            HashMap<String, Object> metadata = new HashMap<>();
+            metadata.put("requestPath", attrs.getRequest().getServletPath());
+            return new TraceContext(id == null ? UUID.randomUUID().toString() : id, tags, metadata);
         }
         return null;
     }

@@ -51,9 +51,10 @@ public class DefaultState implements State {
                 .map(tc -> {
                     if (tc.getTraceId() == null) {
                         tc.setTraceId(UUID.randomUUID().toString());
+                        tc.setMetadata(tc.getMetadata());
                     }
                     return tc;
-                }).orElse(new TraceContext(UUID.randomUUID().toString(), null));
+                }).orElse(new TraceContext(UUID.randomUUID().toString(), null, new HashMap<>()));
         store.put(traceContext, "");
         traceIdAndTags.compute(traceContext.getTraceId(), (k, v) -> {
             if (v == null) {
@@ -68,6 +69,7 @@ public class DefaultState implements State {
         Map<String, String> ctx = new HashMap<>();
         ctx.put(TRACE_ID_KEY, traceContext.getTraceId());
         ctx.put(TRACE_TAGS_KEY, traceContext.getTraceTags());
+        Map<String, String> copyOfContextMap = MDC.getCopyOfContextMap();
         MDC.setContextMap(ctx);
         MDC.put(TRACE_ID_KEY, traceContext.getTraceId());
         MDC.put(TRACE_TAGS_KEY, traceContext.getTraceTags());

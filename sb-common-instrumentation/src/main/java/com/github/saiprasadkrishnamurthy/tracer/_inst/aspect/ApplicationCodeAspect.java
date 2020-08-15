@@ -4,6 +4,7 @@ import com.github.saiprasadkrishnamurthy.tracer._inst.model.RawEvent;
 import com.github.saiprasadkrishnamurthy.tracer._inst.model.RawEventWhole;
 import com.github.saiprasadkrishnamurthy.tracer._inst.model.TraceEventType;
 import com.github.saiprasadkrishnamurthy.tracer.api.State;
+import com.github.saiprasadkrishnamurthy.tracer.api.TraceContext;
 import net.engio.mbassy.bus.MBassador;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.springframework.aop.Advisor;
@@ -53,15 +54,16 @@ public class ApplicationCodeAspect {
         return new DefaultPointcutAdvisor(pointcut, (MethodInterceptor) methodInvocation -> {
             long start = System.currentTimeMillis();
             Object result;
-            mBassador.publish(new RawEvent(state.getTraceContext(), appName, methodInvocation, TraceEventType.Entry, null, System.currentTimeMillis(), null, Thread.currentThread().getName(), applicationContext, -1));
+            TraceContext traceContext = state.getTraceContext();
+            mBassador.publish(new RawEvent(traceContext, appName, methodInvocation, TraceEventType.Entry, null, System.currentTimeMillis(), null, Thread.currentThread().getName(), applicationContext, -1));
             try {
                 result = methodInvocation.proceed();
                 long end = System.currentTimeMillis();
-                mBassador.publish(new RawEvent(state.getTraceContext(), appName, methodInvocation, TraceEventType.Exit, null, System.currentTimeMillis(), null, Thread.currentThread().getName(), applicationContext, end - start));
-                mBassador.publish(new RawEventWhole(state.getTraceContext(), appName, methodInvocation, TraceEventType.Exit, null, start, end, null, Thread.currentThread().getName(), applicationContext, end - start));
+                mBassador.publish(new RawEvent(traceContext, appName, methodInvocation, TraceEventType.Exit, null, System.currentTimeMillis(), null, Thread.currentThread().getName(), applicationContext, end - start));
+                mBassador.publish(new RawEventWhole(traceContext, appName, methodInvocation, TraceEventType.Exit, null, start, end, null, Thread.currentThread().getName(), applicationContext, end - start));
             } catch (Throwable err) {
-                mBassador.publish(new RawEvent(state.getTraceContext(), appName, methodInvocation, TraceEventType.Error, err, System.currentTimeMillis(), null, Thread.currentThread().getName(), applicationContext, System.currentTimeMillis() - start));
-                mBassador.publish(new RawEventWhole(state.getTraceContext(), appName, methodInvocation, TraceEventType.Exit, null, start, System.currentTimeMillis(), null, Thread.currentThread().getName(), applicationContext, System.currentTimeMillis() - start));
+                mBassador.publish(new RawEvent(traceContext, appName, methodInvocation, TraceEventType.Error, err, System.currentTimeMillis(), null, Thread.currentThread().getName(), applicationContext, System.currentTimeMillis() - start));
+                mBassador.publish(new RawEventWhole(traceContext, appName, methodInvocation, TraceEventType.Exit, null, start, System.currentTimeMillis(), null, Thread.currentThread().getName(), applicationContext, System.currentTimeMillis() - start));
                 throw err;
             }
             return result;

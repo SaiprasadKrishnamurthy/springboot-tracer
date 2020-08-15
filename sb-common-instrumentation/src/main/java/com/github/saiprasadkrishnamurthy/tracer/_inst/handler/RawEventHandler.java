@@ -5,6 +5,7 @@ import com.github.saiprasadkrishnamurthy.tracer._inst.model.MethodEvent;
 import com.github.saiprasadkrishnamurthy.tracer._inst.model.RawEvent;
 import com.github.saiprasadkrishnamurthy.tracer._inst.model.RawEventWhole;
 import com.github.saiprasadkrishnamurthy.tracer._inst.model.TraceEvent;
+import com.github.saiprasadkrishnamurthy.tracer.api.TraceContext;
 import lombok.extern.slf4j.Slf4j;
 import net.engio.mbassy.listener.Handler;
 import net.engio.mbassy.listener.Invoke;
@@ -37,7 +38,7 @@ public class RawEventHandler {
                     rawEvent.getTraceEventType(),
                     getHostName(),
                     parseParams(method),
-                    parseMetadata(method),
+                    parseMetadata(rawEvent.getTraceContext(), method),
                     rawEvent.getTags(),
                     rawEvent.getThreadId(),
                     rawEvent.getTimeTakenInMillis());
@@ -63,7 +64,7 @@ public class RawEventHandler {
                     rawEvent.getEnd(),
                     getHostName(),
                     parseParams(method),
-                    parseMetadata(method),
+                    parseMetadata(rawEvent.getTraceContext(), method),
                     rawEvent.getTags(),
                     rawEvent.getThreadId(),
                     rawEvent.getTimeTakenInMillis());
@@ -76,7 +77,7 @@ public class RawEventHandler {
         }
     }
 
-    private Map<String, Object> parseMetadata(final Method method) {
+    private Map<String, Object> parseMetadata(TraceContext traceContext, final Method method) {
         Map<String, Object> metadata = new HashMap<>();
         List<String> collect = Arrays.stream(method.getDeclaredAnnotations())
                 .map(Annotation::annotationType)
@@ -118,6 +119,7 @@ public class RawEventHandler {
                 metadata.put("superClassAnnotations", Arrays.stream(classAnnotations).map(Annotation::annotationType).collect(toList()));
             }
         }
+        metadata.putAll(traceContext.getMetadata());
         return metadata;
     }
 

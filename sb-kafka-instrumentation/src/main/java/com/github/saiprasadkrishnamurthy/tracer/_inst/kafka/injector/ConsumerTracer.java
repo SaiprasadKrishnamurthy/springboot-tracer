@@ -10,6 +10,7 @@ import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.springframework.context.ApplicationContext;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -32,7 +33,9 @@ public class ConsumerTracer<K, V> implements ConsumerInterceptor<K, V>, TraceCon
                 }
             });
             if (traceId.get() != null) {
-                state.propagate(new TraceContext(traceId.get(), traceTags.get()));
+                HashMap<String, Object> metadata = new HashMap<>();
+                metadata.put("kafkaTopic", record.topic());
+                state.propagate(new TraceContext(traceId.get(), traceTags.get(), metadata));
             }
         });
         return consumerRecords;

@@ -6,6 +6,8 @@ import lombok.Data;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
+
 @Data
 @Component
 public class MdcTraceProvider implements TraceProvider {
@@ -14,6 +16,6 @@ public class MdcTraceProvider implements TraceProvider {
     public TraceContext getTraceContext() {
         String id = MDC.get(TRACE_ID_KEY);
         String tags = MDC.get(TRACE_TAGS_KEY);
-        return new TraceContext(id, tags);
+        return new TraceContext(id, tags, new HashMap<>());
     }
 }
