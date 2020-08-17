@@ -3,7 +3,6 @@ package com.github.saiprasadkrishnamurthy.tracer._inst.kafka.injector;
 import com.github.saiprasadkrishnamurthy.tracer._inst.provider.DefaultState;
 import com.github.saiprasadkrishnamurthy.tracer.api.State;
 import com.github.saiprasadkrishnamurthy.tracer.api.TraceContext;
-import com.github.saiprasadkrishnamurthy.tracer.api.TraceContextSupplier;
 import org.apache.kafka.clients.consumer.ConsumerInterceptor;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
@@ -14,7 +13,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class ConsumerTracer<K, V> implements ConsumerInterceptor<K, V>, TraceContextSupplier {
+import static com.github.saiprasadkrishnamurthy.tracer.api.TraceConstants.TRACE_ID_KEY;
+import static com.github.saiprasadkrishnamurthy.tracer.api.TraceConstants.TRACE_TAGS_KEY;
+
+public class ConsumerTracer<K, V> implements ConsumerInterceptor<K, V> {
 
     private ApplicationContext applicationContext;
 

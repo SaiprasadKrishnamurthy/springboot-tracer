@@ -1,29 +1,35 @@
-package com.github.saiprasadkrishnamurthy.tracer._inst.model;
+package com.github.saiprasadkrishnamurthy.tracer.api;
 
-import com.github.saiprasadkrishnamurthy.tracer.api.TraceContext;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TraceEvent {
+public class MethodEvent {
     private TraceContext traceContext;
     private String appName;
     private String className;
     private String methodName;
-    private long timestamp = System.currentTimeMillis();
-    private TraceEventType traceEventType;
+    private long start;
+    private long end;
     private String host;
     private Map<String, Object> params = new LinkedHashMap<>();
     private Map<String, Object> metadata = new LinkedHashMap<>();
-    private List<String> tags = new ArrayList<>();
+    private Set<String> tags = new LinkedHashSet<>();
     private String threadId;
     private long timeTakenInMillis;
+
+    public MethodEvent merge(final MethodEvent methodEvent) {
+        this.params.putAll(methodEvent.getParams());
+        this.metadata.putAll(methodEvent.getMetadata());
+        this.tags.addAll(methodEvent.getTags());
+        return this;
+    }
 }

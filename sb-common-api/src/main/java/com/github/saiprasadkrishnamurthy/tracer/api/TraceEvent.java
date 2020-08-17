@@ -1,6 +1,5 @@
-package com.github.saiprasadkrishnamurthy.tracer._inst.model;
+package com.github.saiprasadkrishnamurthy.tracer.api;
 
-import com.github.saiprasadkrishnamurthy.tracer.api.TraceContext;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,13 +12,13 @@ import java.util.Map;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MethodEvent {
+public class TraceEvent {
     private TraceContext traceContext;
     private String appName;
     private String className;
     private String methodName;
-    private long start;
-    private long end;
+    private long timestamp = System.currentTimeMillis();
+    private TraceEventType traceEventType;
     private String host;
     private Map<String, Object> params = new LinkedHashMap<>();
     private Map<String, Object> metadata = new LinkedHashMap<>();

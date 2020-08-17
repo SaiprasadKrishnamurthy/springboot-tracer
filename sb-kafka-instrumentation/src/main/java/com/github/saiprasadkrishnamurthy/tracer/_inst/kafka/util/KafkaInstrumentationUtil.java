@@ -8,24 +8,24 @@ import org.springframework.context.ApplicationContext;
 
 import java.util.Map;
 
-public class KafkaTracingConfigInjector {
+public class KafkaInstrumentationUtil {
 
     private static Boolean PRODUCER_CONFIG_SET = false;
     private static Boolean CONSUMER_CONFIG_SET = false;
 
 
-    public static Map addProducerTracingConfigs(Map kafkaConfigs, ApplicationContext applicationContext) {
-        kafkaConfigs.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG, ProducerTracer.class.getName());
-        kafkaConfigs.put("applicationContext", applicationContext);
+    public static Map instrumentProducer(Map kafkaProducerConfigs, ApplicationContext applicationContext) {
+        kafkaProducerConfigs.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG, ProducerTracer.class.getName());
+        kafkaProducerConfigs.put("applicationContext", applicationContext);
         PRODUCER_CONFIG_SET = true;
-        return kafkaConfigs;
+        return kafkaProducerConfigs;
     }
 
-    public static Map addConsumerTracingConfigs(Map kafkaConfigs, ApplicationContext applicationContext) {
-        kafkaConfigs.put(ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, ConsumerTracer.class.getName());
-        kafkaConfigs.put("applicationContext", applicationContext);
+    public static Map instrumentConsumer(Map kafkaConsumerConfigs, ApplicationContext applicationContext) {
+        kafkaConsumerConfigs.put(ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, ConsumerTracer.class.getName());
+        kafkaConsumerConfigs.put("applicationContext", applicationContext);
         CONSUMER_CONFIG_SET = true;
-        return kafkaConfigs;
+        return kafkaConsumerConfigs;
     }
 
     public static boolean isProducerConfigSet() {

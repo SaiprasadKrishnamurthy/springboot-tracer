@@ -1,10 +1,9 @@
 package com.github.saiprasadkrishnamurthy.tracer._inst.aspect;
 
-import com.github.saiprasadkrishnamurthy.tracer._inst.model.RawEvent;
-import com.github.saiprasadkrishnamurthy.tracer._inst.model.RawEventWhole;
-import com.github.saiprasadkrishnamurthy.tracer._inst.model.TraceEventType;
+import com.github.saiprasadkrishnamurthy.tracer.api.RawEvent;
 import com.github.saiprasadkrishnamurthy.tracer.api.State;
 import com.github.saiprasadkrishnamurthy.tracer.api.TraceContext;
+import com.github.saiprasadkrishnamurthy.tracer.api.TraceEventType;
 import net.engio.mbassy.bus.MBassador;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.springframework.aop.Advisor;
@@ -55,15 +54,12 @@ public class ApplicationCodeAspect {
             long start = System.currentTimeMillis();
             Object result;
             TraceContext traceContext = state.getTraceContext();
-            mBassador.publish(new RawEvent(traceContext, appName, methodInvocation, TraceEventType.Entry, null, System.currentTimeMillis(), null, Thread.currentThread().getName(), applicationContext, -1));
             try {
                 result = methodInvocation.proceed();
                 long end = System.currentTimeMillis();
-                mBassador.publish(new RawEvent(traceContext, appName, methodInvocation, TraceEventType.Exit, null, System.currentTimeMillis(), null, Thread.currentThread().getName(), applicationContext, end - start));
-                mBassador.publish(new RawEventWhole(traceContext, appName, methodInvocation, TraceEventType.Exit, null, start, end, null, Thread.currentThread().getName(), applicationContext, end - start));
+                mBassador.publish(new RawEvent(traceContext, appName, methodInvocation, TraceEventType.Success, null, start, end, null, Thread.currentThread().getName(), applicationContext, end - start));
             } catch (Throwable err) {
-                mBassador.publish(new RawEvent(traceContext, appName, methodInvocation, TraceEventType.Error, err, System.currentTimeMillis(), null, Thread.currentThread().getName(), applicationContext, System.currentTimeMillis() - start));
-                mBassador.publish(new RawEventWhole(traceContext, appName, methodInvocation, TraceEventType.Exit, null, start, System.currentTimeMillis(), null, Thread.currentThread().getName(), applicationContext, System.currentTimeMillis() - start));
+                mBassador.publish(new RawEvent(traceContext, appName, methodInvocation, TraceEventType.Error, null, start, System.currentTimeMillis(), null, Thread.currentThread().getName(), applicationContext, System.currentTimeMillis() - start));
                 throw err;
             }
             return result;

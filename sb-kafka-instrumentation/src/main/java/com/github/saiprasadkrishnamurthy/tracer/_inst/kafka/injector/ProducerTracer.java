@@ -10,13 +10,16 @@ import org.springframework.context.ApplicationContext;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ProducerTracer<K, V> implements ProducerInterceptor<K, V>, TraceContextSupplier {
+import static com.github.saiprasadkrishnamurthy.tracer.api.TraceConstants.TRACE_ID_KEY;
+import static com.github.saiprasadkrishnamurthy.tracer.api.TraceConstants.TRACE_TAGS_KEY;
+
+public class ProducerTracer<K, V> implements ProducerInterceptor<K, V> {
 
     private ApplicationContext applicationContext;
 
     @Override
     public ProducerRecord<K, V> onSend(ProducerRecord<K, V> producerRecord) {
-        TraceContext traceContext = traceContextSupplier(applicationContext).get();
+        TraceContext traceContext = TraceContextSupplier.traceContextSupplier(applicationContext).get();
         Map<String, Object> metadata = traceContext.getMetadata();
         if (metadata == null) {
             metadata = new HashMap<>();

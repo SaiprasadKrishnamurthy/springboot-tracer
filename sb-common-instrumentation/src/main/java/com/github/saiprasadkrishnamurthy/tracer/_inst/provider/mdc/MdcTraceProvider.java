@@ -8,6 +8,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 
+import static com.github.saiprasadkrishnamurthy.tracer.api.TraceConstants.TRACE_ID_KEY;
+import static com.github.saiprasadkrishnamurthy.tracer.api.TraceConstants.TRACE_TAGS_KEY;
+
 @Data
 @Component
 public class MdcTraceProvider implements TraceProvider {

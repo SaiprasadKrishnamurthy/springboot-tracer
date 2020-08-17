@@ -1,16 +1,13 @@
-package com.github.saiprasadkrishnamurthy.tracer._inst.handler;
+package com.github.saiprasadkrishnamurthy.tracer._inst.transformer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.saiprasadkrishnamurthy.tracer._inst.handler.NatsConnProvider;
 import com.github.saiprasadkrishnamurthy.tracer.api.MethodEvent;
 import com.github.saiprasadkrishnamurthy.tracer.api.RawEvent;
 import com.github.saiprasadkrishnamurthy.tracer.api.RawEventTransformer;
 import com.github.saiprasadkrishnamurthy.tracer.api.TraceContext;
 import lombok.extern.slf4j.Slf4j;
-import net.engio.mbassy.listener.Handler;
-import net.engio.mbassy.listener.Invoke;
-import net.engio.mbassy.listener.Listener;
-import net.engio.mbassy.listener.References;
-import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -22,29 +19,40 @@ import java.util.*;
 import static java.util.stream.Collectors.toList;
 
 @Slf4j
-@Listener(references = References.Strong)
-public class RawEventHandler {
-
-    private final ApplicationContext applicationContext;
-
-    public RawEventHandler(final ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
+@Component
+public class DefaultRawEventTransformer implements RawEventTransformer {
+    @Override
+    public boolean canHandle(final RawEvent rawEvent) {
+        return true;
     }
 
-    @Handler(delivery = Invoke.Asynchronously)
-    public void handleRawEvent(final RawEvent rawEvent) {
-        rawEvent.getApplicationContext().getBeansOfType(RawEventTransformer.class).values().stream()
-                .filter(r -> r.canHandle(rawEvent))
-                .map(r -> r.transform(rawEvent))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .reduce(MethodEvent::merge)
-                .ifPresent(me -> {
-                    NatsConnProvider natsConnProvider = rawEvent.getApplicationContext().getBean(NatsConnProvider.class);
-                    String environmentPrefix = rawEvent.getApplicationContext().getEnvironment().getProperty("tracing.environment.prefix", "");
-                    String tracingQueue = rawEvent.getApplicationContext().getEnvironment().getProperty("tracing.queue.method", "tracing_queue_method");
-                    natsConnProvider.doWithConnection(conn -> conn.publish(environmentPrefix + "_" + tracingQueue, new ObjectMapper().writeValueAsBytes(me)));
-                });
+    @Override
+    public Optional<MethodEvent> transform(final RawEvent rawEvent) {
+        try {
+            Method method = rawEvent.getMethodInvocation().getMethod();
+            Class<?> declaringClass = rawEvent.getMethodInvocation().getMethod().getDeclaringClass();
+            MethodEvent traceEvent = new MethodEvent(rawEvent.getTraceContext(),
+                    rawEvent.getAppName(),
+                    declaringClass.getName(),
+                    method.getName(),
+                    rawEvent.getStart(),
+                    rawEvent.getEnd(),
+                    getHostName(),
+                    parseParams(method),
+                    parseMetadata(rawEvent.getTraceContext(), method),
+                    rawEvent.getTags() != null ? new LinkedHashSet<>(rawEvent.getTags()) : new LinkedHashSet<>(),
+                    rawEvent.getThreadId(),
+                    rawEvent.getTimeTakenInMillis());
+            return Optional.of(traceEvent);
+        } catch (Exception ex) {
+            log.error("Can't publish trace event for traceId: " + rawEvent.getTraceContext().getTraceId(), ex);
+        }
+        return Optional.empty();
+    }
+
+    private Map<String, Object> parseParams(final Method method) {
+        // TODO
+        return Collections.emptyMap();
     }
 
     private Map<String, Object> parseMetadata(TraceContext traceContext, final Method method) {
@@ -90,11 +98,6 @@ public class RawEventHandler {
         }
         metadata.putAll(traceContext.getMetadata());
         return metadata;
-    }
-
-    private Map<String, Object> parseParams(final Method method) {
-        // TODO
-        return Collections.emptyMap();
     }
 
     private String getHostName() {

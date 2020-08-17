@@ -10,11 +10,11 @@ public class KafkaConfigsChecker implements ApplicationListener<ApplicationReady
 
     @Override
     public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
-        if (!KafkaTracingConfigInjector.isConsumerConfigSet()) {
+        if (!KafkaInstrumentationUtil.isConsumerConfigSet()) {
             throw new RequiredPropertyMissingException("Application Context and Consumer Interceptor is not been set. Please invoke" +
                     "KafkaTracingConfigInjector.addConsumerTracingConfigs by passing your kafka consumer configuration");
         }
-        if (!KafkaTracingConfigInjector.isProducerConfigSet()) {
+        if (!KafkaInstrumentationUtil.isProducerConfigSet()) {
             throw new RequiredPropertyMissingException("Application Context and Producer Interceptor is not been set. Please invoke" +
                     "KafkaTracingConfigInjector.addProducerTracingConfigs by passing your kafka producer configuration");
         }

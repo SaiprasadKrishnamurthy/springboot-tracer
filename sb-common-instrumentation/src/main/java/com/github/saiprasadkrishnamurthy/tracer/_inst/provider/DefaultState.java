@@ -1,6 +1,7 @@
 package com.github.saiprasadkrishnamurthy.tracer._inst.provider;
 
 import com.github.saiprasadkrishnamurthy.tracer.api.State;
+import com.github.saiprasadkrishnamurthy.tracer.api.TraceConstants;
 import com.github.saiprasadkrishnamurthy.tracer.api.TraceContext;
 import com.github.saiprasadkrishnamurthy.tracer.api.TraceProvider;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +19,8 @@ import java.util.concurrent.TimeUnit;
 @Service("defaultState")
 public class DefaultState implements State {
 
-    private static final String TRACE_ID_KEY = TraceProvider.TRACE_ID_KEY;
-    private static final String TRACE_TAGS_KEY = TraceProvider.TRACE_TAGS_KEY;
+    private static final String TRACE_ID_KEY = TraceConstants.TRACE_ID_KEY;
+    private static final String TRACE_TAGS_KEY = TraceConstants.TRACE_TAGS_KEY;
 
     private final ApplicationContext applicationContext;
 
@@ -32,7 +33,9 @@ public class DefaultState implements State {
                 MDC.remove(k.toString());
                 MDC.clear();
                 traceIdAndTags.remove(k.toString());
-                log.info(" Cleared {}   from Context ", k);
+                if (log.isDebugEnabled()) {
+                    log.debug(" Cleared {}   from Context ", k);
+                }
             })
             .build();
 
