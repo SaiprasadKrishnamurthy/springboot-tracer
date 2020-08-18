@@ -1,0 +1,44 @@
+<html>
+<head>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/gantt/modules/gantt.js"></script>
+    <script type="text/javascript" src="nats.js"></script>
+    <script type="text/javascript">
+    function foo() {
+    var nats = NATS.connect('ws://127.0.0.1:4223');
+    nats.subscribe('_tracing_queue_method', function(msg) {
+        drawChart(msg);
+    });
+    }
+
+    var rows = [];
+    var charts = null;
+    function drawChart(msg) {
+      let _msg = JSON.parse(msg);
+      if(charts != null) {
+        charts.destroy();
+      }
+      rows.push({
+            id: _msg.traceContext.traceId,
+            name: _msg.className + '::'+_msg.methodName,
+            start: _msg.start,
+            end: _msg.end
+        });
+      rows.sort(function(a, b){return a.start - b.start});
+      charts = Highcharts.ganttChart('container', {
+        title: {
+            text: 'Tracing'
+        },
+        series: [{
+            name: _msg.traceContext.traceId,
+            data: rows
+        }]
+    });
+    }
+    foo();
+  </script>
+</head>
+<body>
+<div id="container"></div>
+</body>
+</html>
