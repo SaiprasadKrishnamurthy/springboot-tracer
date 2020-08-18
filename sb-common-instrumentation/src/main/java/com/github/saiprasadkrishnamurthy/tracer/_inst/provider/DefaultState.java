@@ -49,7 +49,7 @@ public class DefaultState implements State {
         TraceContext traceContext = applicationContext.getBeansOfType(TraceProvider.class)
                 .values().stream()
                 .map(TraceProvider::getTraceContext)
-                .filter(t -> t.getTraceId() != null || t.getTraceTags() != null)
+                .filter(t -> t != null && (t.getTraceId() != null || t.getTraceTags() != null))
                 .findFirst()
                 .map(tc -> {
                     if (tc.getTraceId() == null) {
