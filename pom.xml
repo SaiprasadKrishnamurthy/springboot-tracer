@@ -12,9 +12,10 @@
     <version>1.0.0-SNAPSHOT</version>
 
     <!-- sub modules -->
-    <modules>
-        <module>sb-common-api</module>
+    <modules>        
+		<module>sb-common-api</module>
         <module>sb-common-instrumentation</module>
         <module>sb-kafka-instrumentation</module>
+		<module>sb-rawevent-transformers</module>
     </modules>
 </project>
