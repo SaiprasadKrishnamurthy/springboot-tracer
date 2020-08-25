@@ -30,8 +30,7 @@ public class MongoDBRawEventTransformer implements RawEventTransformer {
 
     @Override
     public Optional<MethodEvent> transform(final RawEvent rawEvent) {
-        System.out.println("#########################in the MongoTransformer -> transform");
-
+        log.info("Tracing MongoDB calls");
         try {
             Method method = rawEvent.getMethodInvocation().getMethod();
             Class<?> declaringClass = rawEvent.getMethodInvocation().getMethod().getDeclaringClass();
