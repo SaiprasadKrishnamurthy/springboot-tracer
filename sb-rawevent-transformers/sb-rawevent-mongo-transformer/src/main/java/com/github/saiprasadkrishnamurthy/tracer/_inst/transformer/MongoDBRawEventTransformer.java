@@ -1,33 +1,37 @@
 package com.github.saiprasadkrishnamurthy.tracer._inst.transformer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.saiprasadkrishnamurthy.tracer._inst.handler.NatsConnProvider;
 import com.github.saiprasadkrishnamurthy.tracer.api.MethodEvent;
 import com.github.saiprasadkrishnamurthy.tracer.api.RawEvent;
 import com.github.saiprasadkrishnamurthy.tracer.api.RawEventTransformer;
 import com.github.saiprasadkrishnamurthy.tracer.api.TraceContext;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-
+import org.springframework.data.mongodb.core.mapping.Document;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.TypeVariable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
 @Slf4j
 @Component
-public class DefaultRawEventTransformer implements RawEventTransformer {
+public class MongoDBRawEventTransformer implements RawEventTransformer {
     @Override
     public boolean canHandle(final RawEvent rawEvent) {
-        return true;
+        return rawEvent.getMethodInvocation().getThis().toString().contains("Mongo");
     }
 
     @Override
     public Optional<MethodEvent> transform(final RawEvent rawEvent) {
+        System.out.println("#########################in the MongoTransformer -> transform");
+
         try {
             Method method = rawEvent.getMethodInvocation().getMethod();
             Class<?> declaringClass = rawEvent.getMethodInvocation().getMethod().getDeclaringClass();
@@ -38,7 +42,7 @@ public class DefaultRawEventTransformer implements RawEventTransformer {
                     rawEvent.getStart(),
                     rawEvent.getEnd(),
                     getHostName(),
-                    parseParams(method),
+                    parseParams(rawEvent),
                     parseMetadata(rawEvent.getTraceContext(), method),
                     rawEvent.getTags() != null ? new LinkedHashSet<>(rawEvent.getTags()) : new LinkedHashSet<>(),
                     rawEvent.getThreadId(),
@@ -48,11 +52,41 @@ public class DefaultRawEventTransformer implements RawEventTransformer {
             log.error("Can't publish trace event for traceId: " + rawEvent.getTraceContext().getTraceId(), ex);
         }
         return Optional.empty();
-    }
 
-    private Map<String, Object> parseParams(final Method method) {
-        // TODO
-        return new HashMap<String, Object>();
+}
+
+    private Map<String, Object> parseParams(final RawEvent rawEvent) {
+        Method method = rawEvent.getMethodInvocation().getMethod();
+        Map<String, Object> params = new HashMap<>();
+        Arrays.asList(rawEvent.getMethodInvocation().getArguments()).stream().map(arg->arg.getClass().getName()).collect(Collectors.toList());
+        params.put("parameterList", Arrays.asList(rawEvent.getMethodInvocation().getArguments()).stream().map(arg->arg.getClass().getName()).collect(Collectors.toList()));
+        params.put("parameterCount", method.getParameterCount());
+        List<String> collectionNames = new ArrayList<>();
+        params.put("collectionNames", collectionNames);
+        params.put("parameterValues", Arrays.asList(rawEvent.getMethodInvocation().getArguments()).stream().map(arg-> {
+            try {
+                Optional<Annotation> document=Arrays.stream(arg.getClass().getAnnotations()).filter(annotation -> annotation.annotationType().getName().contains("Document")).findFirst();
+                if(document.isPresent())
+                {
+                    Annotation documentAnnotation = document.get();
+                    Document d =(Document)documentAnnotation;
+                    String collectionName = StringUtils.isEmpty(d.collection())?d.value() : d.collection();
+                    String finalCollectionName = (StringUtils.isEmpty(collectionName))? arg.getClass().toString() : collectionName;
+                    collectionNames.add(finalCollectionName);
+                }
+                Optional<Annotation> traceable=Arrays.stream(arg.getClass().getAnnotations()).filter(annotation -> annotation.annotationType().getName().contains("Traceable")).findFirst();
+                if(traceable.isPresent()) {
+                    return new ObjectMapper().writeValueAsString(arg);
+                }else{
+                    return arg.getClass().getName();
+                }
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+                return arg.getClass().getName();
+            }
+        }
+        ).collect(Collectors.toList()));
+        return params;
     }
 
     private Map<String, Object> parseMetadata(TraceContext traceContext, final Method method) {
