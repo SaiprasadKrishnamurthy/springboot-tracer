@@ -60,19 +60,8 @@ public class MongoDBRawEventTransformer implements RawEventTransformer {
         Arrays.asList(rawEvent.getMethodInvocation().getArguments()).stream().map(arg->arg.getClass().getName()).collect(Collectors.toList());
         params.put("parameterList", Arrays.asList(rawEvent.getMethodInvocation().getArguments()).stream().map(arg->arg.getClass().getName()).collect(Collectors.toList()));
         params.put("parameterCount", method.getParameterCount());
-        List<String> collectionNames = new ArrayList<>();
-        params.put("collectionNames", collectionNames);
         params.put("parameterValues", Arrays.asList(rawEvent.getMethodInvocation().getArguments()).stream().map(arg-> {
             try {
-                Optional<Annotation> document=Arrays.stream(arg.getClass().getAnnotations()).filter(annotation -> annotation.annotationType().getName().contains("Document")).findFirst();
-                if(document.isPresent())
-                {
-                    Annotation documentAnnotation = document.get();
-                    Document d =(Document)documentAnnotation;
-                    String collectionName = StringUtils.isEmpty(d.collection())?d.value() : d.collection();
-                    String finalCollectionName = (StringUtils.isEmpty(collectionName))? arg.getClass().toString() : collectionName;
-                    collectionNames.add(finalCollectionName);
-                }
                 Optional<Annotation> traceable=Arrays.stream(arg.getClass().getAnnotations()).filter(annotation -> annotation.annotationType().getName().contains("Traceable")).findFirst();
                 if(traceable.isPresent()) {
                     return new ObjectMapper().writeValueAsString(arg);
@@ -90,6 +79,7 @@ public class MongoDBRawEventTransformer implements RawEventTransformer {
 
     private Map<String, Object> parseMetadata(TraceContext traceContext, final Method method) {
         Map<String, Object> metadata = new HashMap<>();
+        metadata.put("repositryType", "mongoDB");
         List<String> collect = Arrays.stream(method.getDeclaredAnnotations())
                 .map(Annotation::annotationType)
                 .map(Class::getName)
